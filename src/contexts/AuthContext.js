@@ -18,28 +18,37 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.email?.startsWith('admin@') || false;
 
   const login = async (email, password) => {
-    try {
-      const res = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
-      const token = res.data.token;
+  try {
+    const res = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+    
+    const { token, user: userInfo } = res.data;
 
-      const userData = {
-        email,
-        token
-      };
-
-      setUser(userData);
-      setIsAuthenticated(true);
-
-      localStorage.setItem('edudoc-auth', 'true');
-      localStorage.setItem('edudoc-user', JSON.stringify(userData));
-      localStorage.setItem('token', token);
-
-      return true;
-    } catch (err) {
-      console.error("Login failed:", err.response?.data || err.message);
+    // ✅ Validate backend response
+    if (!token || !userInfo || !userInfo._id) {
+      console.error("Invalid user data returned from backend.", res.data);
       return false;
     }
-  };
+
+    const userData = {
+      ...userInfo,
+      token,
+    };
+
+    setUser(userData);
+    setIsAuthenticated(true);
+
+    localStorage.setItem('edudoc-auth', 'true');
+    localStorage.setItem('edudoc-user', JSON.stringify(userData));
+    localStorage.setItem('token', token);
+
+    return true;
+  } catch (err) {
+    console.error("Login failed:", err.response?.data || err.message);
+    return false;
+  }
+};
+
+
 
   const logout = () => {
     setUser(null);
