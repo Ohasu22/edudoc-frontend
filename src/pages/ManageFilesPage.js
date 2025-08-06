@@ -70,13 +70,13 @@ function ManageFilesPage() {
 
   const handleMove = async () => {
   if (!selectedFiles.length || !targetFolderId) {
-    alert('Select files and a target folder.');
-    return;
+    return alert('Select files and a target folder.');
   }
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE}/files/move`, {
+
+    const response = await fetch(`${API_BASE}/api/files/move`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -85,23 +85,23 @@ function ManageFilesPage() {
       body: JSON.stringify({ fileIds: selectedFiles, targetFolderId }),
     });
 
-    const rawText = await response.text(); // read raw response
-    console.log('🔍 Raw response:', rawText);
-
     if (!response.ok) {
-      throw new Error(rawText || `HTTP error: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error: ${response.status}\n${errorText}`);
     }
 
-    const data = rawText ? JSON.parse(rawText) : {};
-    console.log('✅ Move success:', data.message || 'Files moved successfully.');
-    alert(data.message || 'Files moved successfully.');
+    const result = await response.json();
+    console.log('✅ Move success:', result.message);
+
+    alert('Files moved successfully.');
     setSelectedFiles([]);
     fetchData();
   } catch (err) {
     console.error('❌ Move error:', err);
-    alert(err.message || 'Error moving files.');
+    alert(err.message || 'Unknown error');
   }
 };
+
 
 
   const handleDelete = (item) => {
@@ -266,5 +266,6 @@ function ManageFilesPage() {
 }
 
 export default ManageFilesPage;
+
 
 
