@@ -39,32 +39,33 @@ function ManageFilesPage() {
   const currentFolders = searchTerm ? searchFolders(searchTerm) : getFoldersByParent(currentFolderId);
   const currentFiles = searchTerm ? searchFiles(searchTerm) : getFilesByFolder(currentFolderId);
 
-  const items = [...currentFolders, ...currentFiles].filter(item => {
+  const items = [
+    ...currentFolders.map(f => ({ ...f, type: 'folder' })),
+    ...currentFiles.map(f => ({ ...f, type: 'file' }))
+  ].filter(item => {
     if (!activeFilters.length) return true;
-    if (item.type === 'folder' && activeFilters.includes('folders')) return true;
-    if (item.type === 'file') {
-      if (activeFilters.includes('documents') && /\.(pdf|docx?|txt)$/i.test(item.name)) return true;
-      if (activeFilters.includes('images') && /\.(png|jpe?g|gif)$/i.test(item.name)) return true;
-    }
+    if (activeFilters.includes('folders') && item.type === 'folder') return true;
+    if (activeFilters.includes('documents') && item.type === 'file' && /\.(pdf|docx?|txt)$/i.test(item.name)) return true;
+    if (activeFilters.includes('images') && item.type === 'file' && /\.(png|jpe?g|gif)$/i.test(item.name)) return true;
     return false;
   });
 
-  const handleFolderDoubleClick = folder => {
+  const handleFolderDoubleClick = (folder) => {
     setCurrentPath(prev => (prev ? `${prev}/${folder.name}` : folder.name));
     setCurrentFolderId(folder._id);
   };
 
-  const handleNavigate = path => {
+  const handleNavigate = (path) => {
     setCurrentPath(path);
     if (!path) return setCurrentFolderId(null);
     const folder = folders.find(f => f.name === path.split('/').pop());
     setCurrentFolderId(folder?._id || null);
   };
 
-  const toggleCheckbox = fileId => {
-    setSelectedFiles(prev =>
-      prev.includes(fileId) ? prev.filter(id => id !== fileId) : [...prev, fileId]
-    );
+  const toggleCheckbox = (fileId) => {
+    setSelectedFiles(prev => prev.includes(fileId)
+      ? prev.filter(id => id !== fileId)
+      : [...prev, fileId]);
   };
 
   const handleMove = async () => {
@@ -79,23 +80,21 @@ function ManageFilesPage() {
         },
         body: JSON.stringify({ fileIds: selectedFiles, targetFolderId }),
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Move failed: ${errorText}`);
+      const result = await response.json();
+      if (response.ok) {
+        alert('Files moved successfully.');
+        setSelectedFiles([]);
+        fetchData();
+      } else {
+        alert(result.message || 'Failed to move files.');
       }
-
-      const data = await response.json();
-      alert(data.message || 'Files moved successfully.');
-      setSelectedFiles([]);
-      fetchData();
     } catch (err) {
       console.error('Move error:', err);
       alert('Error moving files.');
     }
   };
 
-  const handleDelete = item => {
+  const handleDelete = (item) => {
     if (!window.confirm(`Are you sure you want to delete ${item.name}?`)) return;
     item.type === 'file' ? deleteFile(item._id) : deleteFolder(item._id);
   };
@@ -200,7 +199,11 @@ function ManageFilesPage() {
 
         <SearchAndFilter
           onSearch={setSearchTerm}
-          onFilter={(key) => setActiveFilters(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key])}
+          onFilter={(key) =>
+            setActiveFilters(prev =>
+              prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+            )
+          }
           filters={filters}
           activeFilters={activeFilters}
           searchTerm={searchTerm}
