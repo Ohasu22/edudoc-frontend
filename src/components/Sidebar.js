@@ -20,7 +20,8 @@ export default function Sidebar() {
   const navItems = [
     { path: '/dashboard', icon: 'fas fa-tachometer-alt', label: 'Dashboard', class: 'dashboard' },
     { path: '/upload', icon: 'fas fa-cloud-upload-alt', label: 'Upload Files', class: 'upload' },
-    { path: '/manage', icon: 'fas fa-folder-open', label: 'Manage Files', class: 'manage' }
+    { path: '/manage', icon: 'fas fa-folder-open', label: 'Manage Files', class: 'manage' },
+    { path: '/notes', icon: 'fas fa-sticky-note', label: 'Notes', class: 'notes' }
   ];
 
   return (
