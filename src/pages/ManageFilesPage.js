@@ -69,30 +69,42 @@ function ManageFilesPage() {
   };
 
   const handleMove = async () => {
-    if (!selectedFiles.length || !targetFolderId) return alert('Select files and a target folder.');
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/files/move`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ fileIds: selectedFiles, targetFolderId }),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        alert('Files moved successfully.');
-        setSelectedFiles([]);
-        fetchData();
-      } else {
-        alert(result.message || 'Failed to move files.');
-      }
-    } catch (err) {
-      console.error('Move error:', err);
-      alert('Error moving files.');
+  if (!selectedFiles.length || !targetFolderId) {
+    alert('Select files and a target folder.');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/files/move`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ fileIds: selectedFiles, targetFolderId }),
+    });
+
+    if (!response.ok) {
+      // Try to read error message if available
+      const errorText = await response.text();
+      console.error('Move failed:', errorText);
+      throw new Error(errorText || 'Unknown error');
     }
-  };
+
+    // ✅ Check if there's a body to parse before parsing JSON
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+    
+    console.log('✅ Move success:', data.message || 'Files moved');
+    alert(data.message || 'Files moved successfully');
+    setSelectedFiles([]);
+    fetchData();
+  } catch (err) {
+    console.error('Move error:', err);
+    alert('Error moving files.');
+  }
+};
 
   const handleDelete = (item) => {
     if (!window.confirm(`Are you sure you want to delete ${item.name}?`)) return;
@@ -256,3 +268,4 @@ function ManageFilesPage() {
 }
 
 export default ManageFilesPage;
+
