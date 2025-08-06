@@ -9,6 +9,7 @@ import UploadPage from './pages/UploadPage';
 import ManageFilesPage from './pages/ManageFilesPage';
 import Sidebar from './components/Sidebar';
 import { useAuth } from './contexts/AuthContext';
+import NotesPage from './pages/NotesPage'
 
 function Layout({ children }) {
   return (
@@ -32,6 +33,7 @@ function AppRoutes() {
         <Route path="/dashboard"><DashboardPage /></Route>
         <Route path="/upload"><UploadPage /></Route>
         <Route path="/manage"><ManageFilesPage /></Route>
+        <Route path="/notes"><NotesPage /></Route>
       </Router>
     </Layout>
   );
