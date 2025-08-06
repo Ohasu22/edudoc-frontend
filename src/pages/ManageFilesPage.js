@@ -85,26 +85,24 @@ function ManageFilesPage() {
       body: JSON.stringify({ fileIds: selectedFiles, targetFolderId }),
     });
 
+    const rawText = await response.text(); // read raw response
+    console.log('🔍 Raw response:', rawText);
+
     if (!response.ok) {
-      // Try to read error message if available
-      const errorText = await response.text();
-      console.error('Move failed:', errorText);
-      throw new Error(errorText || 'Unknown error');
+      throw new Error(rawText || `HTTP error: ${response.status}`);
     }
 
-    // ✅ Check if there's a body to parse before parsing JSON
-    const text = await response.text();
-    const data = text ? JSON.parse(text) : {};
-    
-    console.log('✅ Move success:', data.message || 'Files moved');
-    alert(data.message || 'Files moved successfully');
+    const data = rawText ? JSON.parse(rawText) : {};
+    console.log('✅ Move success:', data.message || 'Files moved successfully.');
+    alert(data.message || 'Files moved successfully.');
     setSelectedFiles([]);
     fetchData();
   } catch (err) {
-    console.error('Move error:', err);
-    alert('Error moving files.');
+    console.error('❌ Move error:', err);
+    alert(err.message || 'Error moving files.');
   }
 };
+
 
   const handleDelete = (item) => {
     if (!window.confirm(`Are you sure you want to delete ${item.name}?`)) return;
@@ -268,4 +266,5 @@ function ManageFilesPage() {
 }
 
 export default ManageFilesPage;
+
 
